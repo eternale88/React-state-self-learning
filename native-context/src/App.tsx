@@ -1,56 +1,56 @@
-import { useState, useEffect, createContext, useContext } from "react";
-
+import { useState, useEffect, createContext, useContext } from 'react'
 interface Pokemon {
-  id: number;
-  name: string;
-  type: string[];
-  hp: number;
-  attack: number;
-  defense: number;
-  special_attack: number;
-  special_defense: number;
-  speed: number;
+  id: number
+  name: string
+  type: string[]
+  hp: number
+  attack: number
+  defense: number
+  special_attack: number
+  special_defense: number
+  speed: number
 }
 
-function usePokemonSource(): {
-  pokemon: Pokemon[];
-} {
-  const [pokemon, setPokemon] = useState<Pokemon[]>([]);
+const usePokemon = (): { pokemon: Pokemon[]; loading: boolean } => {
+  const [pokemon, setPokemon] = useState<Pokemon[]>([])
+  const [loading, setLoading] = useState<boolean>(true)
 
   useEffect(() => {
-    fetch("/pokemon.json")
-      .then((response) => response.json())
-      .then((data) => setPokemon(data));
-  }, []);
+    fetch('../public/pokemon.json')
+      .then((res) => res.json())
+      .then((data) => setPokemon(data))
 
-  return { pokemon };
+    setLoading(false)
+  }, [])
+
+  return { pokemon, loading }
 }
-
-const PokemonContext = createContext<ReturnType<typeof usePokemonSource>>(
-  {} as unknown as ReturnType<typeof usePokemonSource>
-);
-
-function usePokemon() {
-  return useContext(PokemonContext);
-}
+const PokemonContext = createContext({
+  pokemon: [] as Pokemon[],
+  loading: false,
+})
 
 const PokemonList = () => {
-  const { pokemon } = usePokemon();
+  const { pokemon, loading } = useContext(PokemonContext)
+
+  if (loading) return <div>Loading</div>
+
   return (
     <div>
       {pokemon.map((p) => (
         <div key={p.id}>{p.name}</div>
       ))}
     </div>
-  );
-};
-
+  )
+}
 function App() {
   return (
-    <PokemonContext.Provider value={usePokemonSource()}>
-      <PokemonList />
-    </PokemonContext.Provider>
-  );
+    <div>
+      <PokemonContext.Provider value={usePokemon()}>
+        <PokemonList />
+      </PokemonContext.Provider>
+    </div>
+  )
 }
 
-export default App;
+export default App
