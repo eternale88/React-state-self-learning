@@ -11,12 +11,12 @@ interface Pokemon {
   speed: number
 }
 
-const usePokemon = (): { pokemon: Pokemon[]; loading: boolean } => {
+const usePokemonSource = (): { pokemon: Pokemon[]; loading: boolean } => {
   const [pokemon, setPokemon] = useState<Pokemon[]>([])
   const [loading, setLoading] = useState<boolean>(true)
 
   useEffect(() => {
-    fetch('../public/pokemon.json')
+    fetch('/pokemon.json')
       .then((res) => res.json())
       .then((data) => setPokemon(data))
 
@@ -25,13 +25,17 @@ const usePokemon = (): { pokemon: Pokemon[]; loading: boolean } => {
 
   return { pokemon, loading }
 }
-const PokemonContext = createContext({
-  pokemon: [] as Pokemon[],
-  loading: false,
-})
+const PokemonContext = createContext<ReturnType<typeof usePokemonSource>>(
+  //this is ts hack to prevent needing to check for undefined
+  {} as unknown as ReturnType<typeof usePokemonSource>
+)
+
+const usePokemon = () => {
+  return useContext(PokemonContext)
+}
 
 const PokemonList = () => {
-  const { pokemon, loading } = useContext(PokemonContext)
+  const { pokemon, loading } = usePokemon()
 
   if (loading) return <div>Loading</div>
 
@@ -46,7 +50,7 @@ const PokemonList = () => {
 function App() {
   return (
     <div>
-      <PokemonContext.Provider value={usePokemon()}>
+      <PokemonContext.Provider value={usePokemonSource()}>
         <PokemonList />
       </PokemonContext.Provider>
     </div>
